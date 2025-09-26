@@ -2,10 +2,11 @@ package main
 
 import (
 	"fmt"
+	"slices"
 	"strconv"
 )
 
-//1. 只出现一次的数字
+// 1. 只出现一次的数字
 func SingleNumber(nums []int) int {
 	var mapHash = make(map[int]int)
 	for _, num := range nums {
@@ -16,14 +17,14 @@ func SingleNumber(nums []int) int {
 		mapHash[num]++
 	}
 	for key, value := range mapHash {
-		if value == 1  {
+		if value == 1 {
 			return key
 		}
 	}
 	return 0
 }
 
-//2. 回文数
+// 2. 回文数
 func IsPalindromeNum(num int) bool {
 	var str string = strconv.Itoa(num)
 	if len(str) == 1 {
@@ -40,16 +41,16 @@ func IsPalindromeNum(num int) bool {
 	return true
 }
 
-//3.有效的括号"(){}[]"或者"({})
+// 3.有效的括号"(){}[]"或者"({})
 func IsValid(s string) bool {
 	n := len(s)
 	if n%2 == 1 {
 		return false
 	}
 	pairs := map[byte]byte{
-		')' : '(',
-		']' : '[',
-		'}' : '{',
+		')': '(',
+		']': '[',
+		'}': '{',
 	}
 	stack := []byte{}
 	for i := 0; i < n; i++ {
@@ -67,7 +68,8 @@ func IsValid(s string) bool {
 
 	return len(stack) == 0
 }
-//4. 最长的公共前缀
+
+// 4. 最长的公共前缀
 func LongestCommonPrefix(strs []string) string {
 	if len(strs) == 0 {
 		return ""
@@ -76,7 +78,7 @@ func LongestCommonPrefix(strs []string) string {
 	count := len(strs)
 	for i := 1; i < count; i++ {
 		prefix = lcp(prefix, strs[i])
-		if (len(prefix) == 0) {
+		if len(prefix) == 0 {
 			break
 		}
 	}
@@ -84,7 +86,7 @@ func LongestCommonPrefix(strs []string) string {
 }
 
 func lcp(str1, str2 string) string {
-	length := min(len(str1), len(str2)) 
+	length := min(len(str1), len(str2))
 	index := 0
 	for index < length && str1[index] == str2[index] {
 		index++
@@ -99,7 +101,14 @@ func min(x, y int) int {
 	return y
 }
 
-//5. 加一
+func max(x, y int) int {
+	if x > y {
+		return x
+	}
+	return y
+}
+
+// 5. 加一
 func AddOne(nums []int) []int {
 	length := len(nums)
 	for i := length - 1; i >= 0; i-- {
@@ -117,7 +126,7 @@ func AddOne(nums []int) []int {
 	return nums
 }
 
-//6. 删除有序数组的重复项,返回最新长度
+// 6. 删除有序数组的重复项,返回最新长度
 func RemoveDuplicates(nums []int) int {
 	n := len(nums)
 	if n == 0 {
@@ -134,7 +143,21 @@ func RemoveDuplicates(nums []int) int {
 	return slow
 }
 
-//8.两数之和
+// 7.合并区间
+func merge(intervals [][]int) (ans [][]int) {
+	slices.SortFunc(intervals, func(p, q []int) int { return p[0] - q[0] })
+	for _, p := range intervals {
+		m := len(ans)
+		if m > 0 && p[0] <= ans[m-1][1] { //可以合并
+			ans[m-1][1] = max(ans[m-1][1], p[1])
+		} else { //不相交,无法合并
+			ans = append(ans, p)
+		}
+	}
+	return
+}
+
+// 8.两数之和
 func TwoSum(nums []int, target int) []int {
 	hashMap := map[int]int{}
 	for i, num := range nums {
@@ -147,7 +170,7 @@ func TwoSum(nums []int, target int) []int {
 }
 
 func main() {
-	ret := SingleNumber([]int{1,3,1,3,2,5,6,6,5})
+	ret := SingleNumber([]int{1, 3, 1, 3, 2, 5, 6, 6, 5})
 	fmt.Println("寻找只出现一次的数字: ", ret)
 	ret2 := IsPalindromeNum(12321)
 	fmt.Println("是否为回文数: ", ret2)
@@ -159,6 +182,8 @@ func main() {
 	fmt.Println("加一: ", ret5)
 	ret6 := RemoveDuplicates([]int{1, 3, 3, 5, 6, 6, 6, 7})
 	fmt.Println("移除重复项: ", ret6)
+	ret7 := merge([][]int{{2, 6}, {1, 3}, {8, 10}, {15, 18}})
+	fmt.Println("合并区间: ", ret7)
 	ret8 := TwoSum([]int{8, 6, 2, 11}, 8)
 	fmt.Println("两数之和: ", ret8)
 }
