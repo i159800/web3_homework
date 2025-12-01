@@ -1,74 +1,224 @@
-# Sample Hardhat Project
+# NFT拍卖市场
+一个功能完整的NFT拍卖市场系统，支持使用ETH ERC20 代币进行出价，集成Chainlink价格预言机和跨链功能。
 
-This project demonstrates a basic Hardhat use case. It comes with a sample contract, a test for that contract, and a Hardhat Ignition module that deploys that contract.
+## 功能特性
 
-Try running some of the following tasks:
+### 核心功能
+- ✅ **ERC721 NFT 合约**: 支持 NFT 铸造和转移
+- ✅ **拍卖合约**: 支持 ETH 和 ERC20 代币出价
+- ✅ **工厂模式**: 类似 Uniswap V2 的工厂模式管理拍卖实例
+- ✅ **价格预言机**: 使用 Chainlink 获取 ERC20 和 ETH 到美元的价格
+- ✅ **合约升级**: 使用 UUPS 代理模式支持安全升级
+- ✅ **跨链拍卖**: 使用 Chainlink CCIP 支持跨链拍卖（基础实现）
 
-```shell
-npx hardhat help
-npx hardhat test
-REPORT_GAS=true npx hardhat test
-npx hardhat node
-npx hardhat ignition deploy ./ignition/modules/Lock.js
+### 技术特性
+- **可升级合约**: 使用 UUPS 代理模式，支持合约升级
+- **价格比较**: 通过 Chainlink 价格预言机，自动将不同代币的出价转换为美元进行比较
+- **工厂模式**: 统一的工厂合约管理所有拍卖实例
+- **安全特性**: 使用 OpenZeppelin 的 ReentrancyGuard 防止重入攻击
+
+## 项目结构
+
 ```
-### ✅  大作业：实现一个 NFT 拍卖市场
-任务目标
-1. 使用 Hardhat 框架开发一个 NFT 拍卖市场。
-2. 使用 Chainlink 的 feedData 预言机功能，计算 ERC20 和以太坊到美元的价格。
-3. 使用 UUPS/透明代理模式实现合约升级。
-4. 使用类似于 Uniswap V2 的工厂模式管理每场拍卖。
+task3/
+├── contracts/
+│   ├── NFTMarketplace.sol      # ERC721 NFT合约
+│   ├── Auction.sol             # 拍卖合约（UUPS可升级）
+│   ├── AuctionFactory.sol      # 工厂合约（UUPS可升级）
+│   ├── PriceOracle.sol         # 价格预言机合约（UUPS可升级）
+│   ├── CrossChainAuction.sol   # 跨链拍卖合约
+│   ├── MockERC20.sol           # 测试用ERC20代币
+│   └── MockPriceFeed.sol       # 测试用价格聚合器
+├── test/
+│   ├── NFTMarketplace.test.js  # NFT合约测试
+│   ├── PriceOracle.test.js     # 价格预言机测试
+│   ├── Auction.test.js         # 拍卖合约测试
+│   └── AuctionFactory.test.js  # 工厂合约测试
+├── deploy/
+│   ├── deploy.js               # 本地部署脚本
+│   ├── deploy-sepolia.js       # Sepolia测试网部署脚本
+│   ├── create-auction.js       # 创建拍卖示例脚本
+│   └── upgrade.js              # 合约升级脚本
+├── hardhat.config.js           # Hardhat配置
+└── package.json                # 项目依赖
 
+```
 
-任务步骤
-1. 项目初始化
-1. 使用 Hardhat 初始化项目：
-npx hardhat init
-2. 安装必要的依赖：
-     npm install @openzeppelin/contracts @chainlink/contracts @nomiclabs/hardhat-ethers hardhat-deploy
-2. 实现 NFT 拍卖市场
-1. NFT 合约：
-  - 使用 ERC721 标准实现一个 NFT 合约。
-  - 支持 NFT 的铸造和转移。
-2. 拍卖合约：
-  - 实现一个拍卖合约，支持以下功能：
-  - 创建拍卖：允许用户将 NFT 上架拍卖。
-  - 出价：允许用户以 ERC20 或以太坊出价。
-  - 结束拍卖：拍卖结束后，NFT 转移给出价最高者，资金转移给卖家。
-3. 工厂模式：
-  - 使用类似于 Uniswap V2 的工厂模式，管理每场拍卖。
-  - 工厂合约负责创建和管理拍卖合约实例。
-4. 集成 Chainlink 预言机
-5. 价格计算：
-  - 使用 Chainlink 的 feedData 预言机，获取 ERC20 和以太坊到美元的价格。
-  - 在拍卖合约中，将出价金额转换为美元，方便用户比较。
-6. 跨链拍卖：
-  - 使用 Chainlink 的 CCIP 功能，实现 NFT 跨链拍卖。
-  - 允许用户在不同链上参与拍卖。
-7. 合约升级
-  1. UUPS/透明代理：
-  - 使用 UUPS 或透明代理模式实现合约升级。
-  - 确保拍卖合约和工厂合约可以安全升级。
-8. 测试与部署
-  1. 测试：
-  - 编写单元测试和集成测试，覆盖所有功能。
-  2. 部署：
-  - 使用 Hardhat 部署脚本，将合约部署到测试网（如 Goerli 或 Sepolia）。
+## 快速开始
 
-任务要求
-1. 代码质量：
-  - 代码清晰、规范，符合 Solidity 最佳实践。
-1. 功能完整性：
-  - 实现所有要求的功能，包括 NFT 拍卖、价格计算和合约升级。
-1. 测试覆盖率：
-  - 编写全面的测试，覆盖所有功能。
-1. 文档：
-  - 提供详细的文档，包括项目结构、功能说明和部署步骤。
+### 安装依赖
 
-提交内容
-1. 代码：提交完整的 Hardhat 项目代码。
-2. 测试报告：提交测试报告，包括测试覆盖率和测试结果。
-3. 部署地址：提交部署到测试网的合约地址。
-4. 文档：提交项目文档，包括功能说明和部署步骤。
+```bash
+npm install
+```
 
-额外挑战（可选）
-1. 动态手续费：根据拍卖金额动态调整手续费。
+### 编译合约
+
+```bash
+npm run compile
+# 或
+npx hardhat compile
+```
+
+### 运行测试
+```bash
+npx hardhat test
+```
+
+## 使用示例
+
+### 1. 创建拍卖
+
+```javascript
+const factory = await ethers.getContractAt("AuctionFactory", factoryAddress);
+const nft = await ethers.getContractAt("NFTMarketplace", nftAddress);
+```
+
+// 批准NFT转移
+await nft.approve(factoryAddress, tokenId);
+
+// 创建拍卖(接收ETH)
+const startTime = Math.floor
+
+### 2. 使用ETH出价
+
+```javascript
+const auction = await ethers.getContractAt("Auction", auctionAddress);
+await auction.bidEth({value: ethers.parseEther("1")});
+```
+
+### 3. 使用ERC20出价
+
+```javascript
+const auction = await ethers.getContractAt("Auction", auctionAddress);
+const token = await ethers.getContractAt("MockERC20", tokenAddress);
+
+//批准代币
+await token.approve(auctionAddress, ethers.parseEther("1000"));
+
+//出价
+await auction.bidToken(ethers.parseEther("1000"));
+```
+
+### 4. 结束拍卖
+
+```javascript
+await auction.endAuction();
+```
+
+## 合约说明
+
+### NFTMarketplace (ERC721)
+- `mint(address to)`: 铸造NFT给指定地址
+- `mintBatch(address to, uint256 amount)`: 批量铸造NFT
+- 标准 ERC721 转移功能
+
+### Auction
+- `initialize(...)`: 初始化拍卖
+- `bidEth()`: 使用ETH出价
+- `bidToken(uint256 amount)`: 使用ERC20代币出价
+- `endAuction()`: 结束拍卖
+- `withdraw()`: 撤回未中标的ETH出价
+- `withdrawToken(address token)`: 撤回未中标的ERC20出价
+- `cancelAuction()`: 取消拍卖（仅卖家）
+
+### AuctionFactory
+- `createAuction(...)`: 创建新的拍卖
+- `getAuctionCount()`: 获取拍卖总数
+- `getAuctionsBySeller(address)`: 获取卖家的所有拍卖
+- `getAllAuctions()`: 获取所有拍卖地址
+
+### PriceOracle
+- `getEthPrice()`: 获取ETH的美元价格
+- `getTokenPrice(address)`: 获取ERC20代币的美元价格
+- `convertEthToUsd(uint256)`: 将ETH转换为美元
+- `convertTokenToUsd(address, uint256)`: 将ERC20转换为美元
+- `compareBids(...)`: 比较两个出价的美元价值
+
+## Chainlink 集成
+
+### 价格预言机
+
+项目使用 Chainlink 价格聚合器获取实时价格：
+
+- **ETH/USD**: 
+  - Sepolia: `0x694AA1769357215DE4FAC081bf1f309aDC325306`
+  - Goerli: `0xD4a33860578De61DBAbDc8BFdb98FD742fA7028e`
+
+- **添加其他代币价格**:
+```javascript
+await priceOracle.setTokenPriceFeed(tokenAddress, priceFeedAddress);
+```
+### 跨链功能
+
+`CrossChainAuction` 合约支持跨链拍卖，使用 Chainlink CCIP。注意：
+- 需要配置 CCIP Router 地址
+- 需要目标链的链选择器
+- 实际部署时需要测试网 LINK 代币支付跨链费用
+
+## 合约升级
+
+所有核心合约（AuctionFactory, PriceOracle, Auction）都支持 UUPS 升级模式。
+
+### 升级合约
+
+```bash
+# 设置环境变量
+export PROXY_ADDRESS=0x...
+export CONTRACT_NAME=AuctionFactory
+
+# 执行升级
+npx hardhat run scripts/upgrade.js --network sepolia
+```
+
+### 升级流程
+
+1. 修改合约代码（保持存储布局不变）
+2. 重新编译合约
+3. 运行升级脚本
+4. 验证新实现地址
+
+## 测试
+
+项目包含完整的测试套件：
+
+```bash
+# 运行所有测试
+npm test
+
+# 运行特定测试文件
+npx hardhat test test/Auction.test.js
+
+# 带gas报告
+REPORT_GAS=true npx hardhat test
+```
+
+### 测试覆盖率
+
+```bash
+npx hardhat coverage
+```
+
+## 安全注意事项
+
+1. **重入攻击防护**: 所有关键函数使用 `ReentrancyGuard`
+2. **溢出保护**: 使用 Solidity 0.8+ 内置的溢出检查
+3. **访问控制**: 使用 OpenZeppelin 的 `Ownable` 进行权限管理
+4. **代理升级**: 使用 UUPS 模式，升级权限仅授予所有者
+5. **价格预言机**: 使用 Chainlink 的可靠价格源
+
+## 许可证
+
+MIT License
+
+## 贡献
+
+欢迎提交 Issue 和 Pull Request！
+
+## 联系方式
+
+如有问题或建议，请提交 Issue。
+
+---
+
+**注意**: 这是一个教育项目。在生产环境使用前，请进行充分的安全审计和测试。
