@@ -149,6 +149,20 @@ describe("stake test", async function () {
         expect(user3Stake).to.eq(BigInt(200E18))
     })
 
+    it("deposit2", async () => {
+        // 跳过n个区块 
+        for (let i = 0; i < unstakeLockedBlocks; i++) {
+            await provider.send("evm_mine", []);
+        }
+        // user1 deposit 10ETH, user2 deposit 20ETH
+        await stakeProxyContract.connect(user1).depositETH({ value: ethers.parseEther("10") })
+        await stakeProxyContract.connect(user2).depositETH({ value: ethers.parseEther("20") })
+        const user1Stake = await stakeProxyContract.stakingBalance(0, user1.address)
+        const user2Stake = await stakeProxyContract.stakingBalance(0, user2.address)
+        expect(user1Stake).to.eq(BigInt(20E18))
+        expect(user2Stake).to.eq(BigInt(40E18))
+    })
+
     it("unstake", async () => {
         await stakeProxyContract.connect(user1).unstake(0, ethers.parseEther("2"))
         await stakeProxyContract.connect(user2).unstake(0, ethers.parseEther("2"))
@@ -157,11 +171,20 @@ describe("stake test", async function () {
         const user1Stake = await stakeProxyContract.stakingBalance(0, user1.address)
         const user2Stake = await stakeProxyContract.stakingBalance(0, user2.address)
         const user3Stake = await stakeProxyContract.stakingBalance(1, user3.address)
-        expect(user1Stake).to.eq(BigInt(8E18))
-        expect(user2Stake).to.eq(BigInt(18E18))
+        expect(user1Stake).to.eq(BigInt(18E18))
+        expect(user2Stake).to.eq(BigInt(38E18))
         expect(user3Stake).to.eq(BigInt(190E18))
 
         await stakeProxyContract.massUpdatePools()
+    })
+
+    it("pendingMetaNode", async () => {
+        // 跳过n个区块 
+        for (let i = 0; i < unstakeLockedBlocks; i++) {
+            await provider.send("evm_mine", []);
+        }
+        const user1PendingAmount = await stakeProxyContract.pendingMetaNode(0, user1.address)
+        console.log("user1PendingAmount:", user1PendingAmount)
     })
 
     it("withdraw", async () => {
@@ -204,6 +227,23 @@ describe("stake test", async function () {
         expect(user1BalanceAfter - user1BalanceBefore).to.lt(BigInt(2E18)).gt(BigInt(1.9E18))
         expect(user2BalanceAfter - user2BalanceBefore).to.lt(BigInt(2E18)).gt(BigInt(1.9E18))
         expect(user3BalanceAfter - user3BalanceBefore).to.eq(BigInt(10E18))
+    })
+
+    it("claim", async () => {
+       
+        const totalSupply = await erc20Contract.connect(admin).totalSupply()
+        console.log("totalSupply::", totalSupply)
+
+        const user1BalanceBefore = await erc20Contract.connect(admin).balanceOf(user1)
+        console.log("user1BalanceBefore::", user1BalanceBefore)
+
+        await stakeProxyContract.connect(user1).claim(0)
+
+        const user1BalanceAfter = await erc20Contract.connect(admin).balanceOf(user1)
+        console.log("user1BalanceAfter::", user1BalanceAfter)
+
+        expect(user1BalanceAfter - user1BalanceBefore).to.gt(0)
+
     })
 })
 
